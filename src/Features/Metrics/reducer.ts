@@ -27,31 +27,28 @@ const slice = createSlice({
   initialState,
   reducers: {
     selectMetric:(state, action: PayloadAction<string>)=>{
-      state.metricSelected=action.payload
+      state.metricSelected=action.payload;
     },
     getMetricsDataRecevied: (state, action: PayloadAction<getMetrics>) => {
-      const metricsArray = action.payload
-    
+      const metricsArray = action.payload;
       metricsArray.forEach((newMetric=>{
         let obj  = state.metrics.find(m => m.metric === newMetric.metric);
         let index = state.metrics.indexOf(obj as metricType);
-          if (index===-1) {
-            state.metrics.push({
-            metric:newMetric.metric,
-              at:newMetric.at,
-              value:newMetric.value,
-              unit:newMetric.unit})  
-          }
-          else{
-            state.metrics[index]={
-              metric:newMetric.metric,
-              at:newMetric.at,
-              value:newMetric.value,
-              unit:newMetric.unit}
-          }
-        }))
+        const metricToSave = {
+          metric:newMetric.metric,
+          at:newMetric.at,
+          value:newMetric.value,
+          unit:newMetric.unit
+        }
+        if (index===-1) {
+          state.metrics.push(metricToSave);  
+        }
+        else{
+          state.metrics[index]=metricToSave;
+        }
+      }))
         if (state.metrics[0].value===0) {
-          state.metrics.splice(0,1)
+          state.metrics.splice(0,1);
         } 
     },
     getMetricsApiErrorReceived: (state, action: PayloadAction<ApiErrorAction>) => state,

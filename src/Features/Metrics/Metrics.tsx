@@ -9,7 +9,7 @@ import { IState } from '../../store';
 import { makeStyles } from '@material-ui/core/styles';
 import { SubscriptionClient } from "subscriptions-transport-ws";
 import Gauge from 'react-svg-gauge';
-import Measurements from '../Measurement/Measurement'
+import Measurements from '../Measurement/Measurement';
 
 
 const subscriptionClient = new SubscriptionClient(
@@ -55,7 +55,6 @@ export default () => {
   return (
     <Provider value={client}>
       <Metrics />
-     
     </Provider>
   );
 };
@@ -67,7 +66,7 @@ type CardProps = {
       value:number,
       unit:string
     },
-}
+};
 
 const useStyles = makeStyles({
     card: {
@@ -97,13 +96,10 @@ const Metrics = () => {
   const [metricSelected, setMetricSelected] = useState('oilTemp');
   const MetricCard = ({metric} : CardProps) => {
 
-  
-  
     const handleClick = (event :MouseEvent) =>{
       event.preventDefault();
       setMetricSelected(event.currentTarget.id)
     }
-  
   
       const classes = useStyles();
       let maxDefault=100
@@ -138,12 +134,9 @@ const Metrics = () => {
           </Card>
       )
   }
-
   const dispatch = useDispatch();
   const classes = useStyles();
-
   const { metrics } = useSelector(getListMetrics);
-
   const [result] = useSubscription({ query: newMeasurement}, (measurament = [], res) => {
     return [res.newMeasurement] 
   })
@@ -151,16 +144,14 @@ const Metrics = () => {
   const { data, error } = result;
   useEffect(() => {
     if (error) {
+      console.error('capturado',error)
       dispatch(actions.getMetricsApiErrorReceived({ error: error.message }));
       return;
     }
     if (!data) return;
-    // console.log(data)
-    // const { getMetrics } = data;
     dispatch(actions.getMetricsDataRecevied(data));
   }, [dispatch, data, error, metricSelected]);
 
-  // if (fetching) return <LinearProgress />;
   return(
   <div> 
      <div className={classes.metrics}>

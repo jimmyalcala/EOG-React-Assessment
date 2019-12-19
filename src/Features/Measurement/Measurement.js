@@ -21,7 +21,6 @@ const query =  `
     }
 `;
 
-
 const Graph= ({measurements, metric}) =>{
 
   var data = [];
@@ -33,16 +32,6 @@ const Graph= ({measurements, metric}) =>{
   });
   dataSeries.dataPoints = dataPoints;
   data.push(dataSeries);
-
-  const spanStyle = {
-    position:'absolute', 
-    top: '10px',
-    fontSize: '20px', 
-    fontWeight: 'bold', 
-    backgroundColor: '#d85757',
-    padding: '0px 4px',
-    color: '#ffffff'
-  }
   
   const options = {
     zoomEnabled: false,
@@ -53,7 +42,7 @@ const Graph= ({measurements, metric}) =>{
     axisY: {
       includeZero: false
     },
-    data: data  // random data
+    data: data 
   }
   
   
@@ -84,7 +73,7 @@ const Measurement =  ({metric}) => {
     }
     ,
   });
-  const { data, error } = result;
+  const { data } = result;
 
   let  measurements  = null
 
