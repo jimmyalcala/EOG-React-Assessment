@@ -4,15 +4,31 @@ import CardHeader from '../../components/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './reducer';
-import { Provider, createClient, useQuery } from 'urql';
-import LinearProgress from '@material-ui/core/LinearProgress';
+import { Provider, createClient, useQuery, defaultExchanges, subscriptionExchange,useSubscription} from 'urql';
 import { IState } from '../../store';
 import { makeStyles } from '@material-ui/core/styles';
+import { SubscriptionClient } from "subscriptions-transport-ws";
+import Gauge from 'react-svg-gauge';
+
+const subscriptionClient = new SubscriptionClient(
+  "ws://react.eogresources.com/graphql",
+  {
+    reconnect: true,
+    timeout: 20000
+  }
+);
 
 
 const client = createClient({
   url: 'https://react.eogresources.com/graphql',
+  exchanges: [
+    ...defaultExchanges,
+    subscriptionExchange({
+      forwardSubscription: operation => subscriptionClient.request(operation)
+    })
+  ]
 });
+
 
 const query = `
 {
@@ -20,10 +36,21 @@ const query = `
 }
 `;
 
+const newMeasurement = `
+  subscription {
+    newMeasurement {
+      metric
+      at
+      value
+      unit
+    }
+  }
+`
+
 const getListMetrics = (state: IState) => {
-  const { getMetrics } = state.metrics;
+  const { metrics } = state.metrics;
   return {
-    getMetrics
+    metrics
   };
 };
 
@@ -36,31 +63,63 @@ export default () => {
 };
 
 type CardProps = {
-    metric: string,
+    metric: {
+      metric:string,
+      at:number,
+      value:number,
+      unit:string
+    },
 }
 
 const useStyles = makeStyles({
     card: {
         display:'flex',
         flexDirection: 'column',
-        height:'500px',
+        height:'400px',
         minWidth: '500px',
         margin:'10px'
     },
     metrics:{
         display: 'flex',
-        flexWrap: 'wrap'
-
+        margin: '20px',
+        overflowX:'scroll',
+        cursor:'pointer'
+    },
+    unit:{
+      color:'#2731427d',
+    },
+    gauge:{
+      marginLeft:'-30px',
     }
   });
 
 const MetricCard = ({metric} : CardProps) => {
     const classes = useStyles();
+    let maxDefault=100
+    switch (metric.unit) {
+      case 'F':
+        maxDefault = 1000;
+        break;
+      case 'PSI':
+          maxDefault = 1500;
+          break;
+    
+      default:
+        break;
+    }
     return( 
         <Card className={classes.card}>
-            <CardHeader title={metric} />    
+            <CardHeader title={metric.metric} style={{ textAlign: 'center' }}/>    
             <CardContent>   
-                <p>valor</p> 
+              <div className={classes.gauge}>
+                <Gauge 
+                  max={maxDefault} 
+                  value={metric.value} 
+                  width={500} 
+                  height={300} 
+                  label={metric.unit} 
+                  minMaxLabelStyle={{fontSize:'.1'}} />
+              </div>
             </CardContent>    
 
         </Card>
@@ -73,24 +132,30 @@ const Metrics = () => {
   const dispatch = useDispatch();
   const classes = useStyles();
 
-  const { getMetrics } = useSelector(getListMetrics);
-  const [result] = useQuery({
-    query,
-  });
+  const { metrics } = useSelector(getListMetrics);
+  // const [result] = useQuery({
+  //   query,
+  // });
+
+  const [result] = useSubscription({ query: newMeasurement }, (measurament = [], res) => {
+    return [res.newMeasurement] 
+  })
 
   const { fetching, data, error } = result;
+  console.table(data)
   useEffect(() => {
     if (error) {
       dispatch(actions.getMetricsApiErrorReceived({ error: error.message }));
       return;
     }
     if (!data) return;
-    const { getMetrics } = data;
-    dispatch(actions.getMetricsDataRecevied(getMetrics));
+    // console.log(data)
+    // const { getMetrics } = data;
+    dispatch(actions.getMetricsDataRecevied(data));
   }, [dispatch, data, error]);
 
-  if (fetching) return <LinearProgress />;
+  // if (fetching) return <LinearProgress />;
   return <div className={classes.metrics}>
-      {getMetrics.map( metric => <MetricCard metric={metric} key={metric}/>)}
+      {metrics.map( metric =>  <MetricCard metric={metric} key={metric.metric}/>)}
   </div>;
 };
