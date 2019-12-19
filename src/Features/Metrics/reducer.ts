@@ -29,9 +29,8 @@ const slice = createSlice({
       const metricsArray = action.payload
     
       metricsArray.forEach((newMetric=>{
-        console.log(newMetric.metric)
         let obj  = state.metrics.find(m => m.metric === newMetric.metric);
-        let index = state.metrics.indexOf(<metricType>obj);
+        let index = state.metrics.indexOf(obj as metricType);
           if (index===-1) {
             state.metrics.push({
             metric:newMetric.metric,

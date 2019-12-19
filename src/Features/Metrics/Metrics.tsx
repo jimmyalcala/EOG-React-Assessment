@@ -4,7 +4,7 @@ import CardHeader from '../../components/CardHeader';
 import CardContent from '@material-ui/core/CardContent';
 import { useDispatch, useSelector } from 'react-redux';
 import { actions } from './reducer';
-import { Provider, createClient, useQuery, defaultExchanges, subscriptionExchange,useSubscription} from 'urql';
+import { Provider, createClient, defaultExchanges, subscriptionExchange, useSubscription} from 'urql';
 import { IState } from '../../store';
 import { makeStyles } from '@material-ui/core/styles';
 import { SubscriptionClient } from "subscriptions-transport-ws";
@@ -29,12 +29,6 @@ const client = createClient({
   ]
 });
 
-
-const query = `
-{
-    getMetrics
-}
-`;
 
 const newMeasurement = `
   subscription {
@@ -76,7 +70,7 @@ const useStyles = makeStyles({
         display:'flex',
         flexDirection: 'column',
         height:'400px',
-        minWidth: '500px',
+        minWidth: '400px',
         margin:'10px'
     },
     metrics:{
@@ -98,10 +92,10 @@ const MetricCard = ({metric} : CardProps) => {
     let maxDefault=100
     switch (metric.unit) {
       case 'F':
-        maxDefault = 1000;
+        maxDefault = 1500;
         break;
       case 'PSI':
-          maxDefault = 1500;
+          maxDefault = 1000;
           break;
     
       default:
@@ -115,10 +109,12 @@ const MetricCard = ({metric} : CardProps) => {
                 <Gauge 
                   max={maxDefault} 
                   value={metric.value} 
-                  width={500} 
+                  width={400} 
                   height={300} 
                   label={metric.unit} 
-                  minMaxLabelStyle={{fontSize:'.1'}} />
+                  topLabelStyle={{marginTop:150,fill: "#999999"}}
+                  valueLabelStyle={{fontSize:50}}
+                  minMaxLabelStyle={{fontSize: 20}} />
               </div>
             </CardContent>    
 
@@ -141,8 +137,7 @@ const Metrics = () => {
     return [res.newMeasurement] 
   })
 
-  const { fetching, data, error } = result;
-  console.table(data)
+  const { data, error } = result;
   useEffect(() => {
     if (error) {
       dispatch(actions.getMetricsApiErrorReceived({ error: error.message }));
