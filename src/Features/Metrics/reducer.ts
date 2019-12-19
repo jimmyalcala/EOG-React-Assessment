@@ -18,6 +18,7 @@ const initialState = {
     value:196,
     unit:'F'
   }],
+  metricSelected:'oilTemp'
 };
 
 
@@ -25,6 +26,9 @@ const slice = createSlice({
   name: 'getMetrics',
   initialState,
   reducers: {
+    selectMetric:(state, action: PayloadAction<string>)=>{
+      state.metricSelected=action.payload
+    },
     getMetricsDataRecevied: (state, action: PayloadAction<getMetrics>) => {
       const metricsArray = action.payload
     
